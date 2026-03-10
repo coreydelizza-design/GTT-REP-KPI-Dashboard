@@ -81,6 +81,7 @@ const[tmF,setTmF]=useState("All");
 const[sch,setSch]=useState("");
 const[sel,setSel]=useState(null);
 const[selRg,setSelRg]=useState(null);
+const[selTm,setSelTm]=useState(null);
 const[bS,setBS]=useState({});
 const[pSo,setPSo]=useState("risk");
 const[pFi,setPFi]=useState("All");
@@ -195,12 +196,44 @@ return(<div>
 <div style={{fontSize:10,color:T.ts,textAlign:"right",fontFamily:"monospace"}}>Avg Total: <span style={{color:T.gl,fontSize:14,fontFamily:"Georgia,serif"}}>{av(rg.reps,"sc").toFixed(0)}</span></div>
 </div>);})()}</div></div>
 <div style={{marginTop:12}}><SH>Teams in {rg.name}</SH>
-{rg.teams.map(tm=>(<div key={tm.name} style={{background:T.bg,border:`1px solid ${T.bd}`,borderRadius:10,padding:10,marginBottom:8}}>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-<div><span style={{fontSize:12,fontWeight:600}}>{tm.name}</span><span style={{fontSize:10,color:T.tm,marginLeft:8}}>{tm.reps.length} reps</span></div>
+{rg.teams.map(tm=>{const tmOpen=selTm===tm.name;return(<div key={tm.name} style={{background:T.bg,border:`1px solid ${tmOpen?T.gl:T.bd}`,borderRadius:10,padding:10,marginBottom:8,cursor:"pointer"}} onClick={e=>{e.stopPropagation();setSelTm(selTm===tm.name?null:tm.name);}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+<div><span style={{fontSize:12,fontWeight:tmOpen?700:600,color:tmOpen?T.gl:T.tx}}>{tm.name}</span><span style={{fontSize:10,color:T.tm,marginLeft:8}}>{tm.reps.length} reps</span></div>
 <div style={{display:"flex",gap:8}}><Ring value={av(tm.reps,"sc")} max={300} color={T.gl} label="Score" size={44}/><Ring value={av(tm.reps,"fh")} max={100} color={hC(av(tm.reps,"fh"))} label="Health" size={44}/><Ring value={Math.min(av(tm.reps,r=>Math.min(r.fp,300)),200)} max={200} color={fxC(av(tm.reps,"fp"))} label="Funnel" size={44}/><Ring value={Math.min(av(tm.reps,r=>Math.min(r.cr,100)),100)} max={100} color={crC(av(tm.reps,"cr"))} label="Close" size={44}/></div></div>
-<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{[...tm.reps].sort((a,b)=>b.fh-a.fh).map(r=>(<div key={r.n} onClick={e=>{e.stopPropagation();setSel(r);setTab("Rep Detail");}} style={{background:T.bgS,borderRadius:6,padding:"4px 9px",fontSize:10,cursor:"pointer",border:`1px solid ${T.bd}`,display:"flex",alignItems:"center",gap:4}} onMouseOver={e=>e.currentTarget.style.borderColor=T.gl} onMouseOut={e=>e.currentTarget.style.borderColor=T.bd}><span style={{width:6,height:6,borderRadius:"50%",background:hC(r.fh)}}/><span style={{fontWeight:500}}>{r.n.split(" ")[0]} {r.n.split(" ").slice(-1)[0][0]}.</span><span style={{color:T.tm,fontFamily:"monospace"}}>{r.fh.toFixed(0)}%</span></div>))}</div>
-</div>))}</div>
+{tmOpen&&(<div style={{marginTop:10,borderTop:`1px solid ${T.bd}`,paddingTop:10}} onClick={e=>e.stopPropagation()}>
+<div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6,marginBottom:10}}>
+{[{l:"Avg 5x Funnel Adds",k:"fp",mx:999,c:fxC,pd:v=>Math.min(v,200)/2},
+{l:"Avg 180-Day Coverage",k:"ep",mx:999,c:v=>v>=300?T.tl:v>=60?T.am:T.co,pd:v=>Math.min(v/3,100)},
+{l:"Avg Close Rate",k:"cr",mx:999,c:crC,pd:v=>Math.min(v,100)},
+{l:"Avg Quota L12M",k:"qs",mx:999,c:v=>v>=100?T.tl:v>=60?T.am:T.co,pd:v=>Math.min(v/2,100)},
+{l:"Avg YTD 2026",k:"yq",mx:999,c:v=>v>=100?T.tl:v>=60?T.am:T.co,pd:v=>Math.min(v,100)},
+{l:"Avg TBR Results",k:"tp",mx:200,c:v=>v>=100?T.tl:v>=80?T.am:T.co,pd:v=>Math.min(v,100)}
+].map(k=>{const v=av(tm.reps,r=>Math.min(r[k.k],k.mx));return(<div key={k.l} style={{background:T.bgS,borderRadius:8,padding:6,position:"relative",overflow:"hidden"}}><div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${k.c(v)}66,transparent)`}}/><div style={{fontSize:7,color:T.tm,fontWeight:700,textTransform:"uppercase",letterSpacing:.6,marginBottom:3,fontFamily:"monospace"}}>{k.l}</div><div style={{fontSize:16,fontWeight:300,color:k.c(v),fontFamily:"Georgia,serif"}}>{v.toFixed(0)}%</div><div style={{marginTop:3}}><PB pct={k.pd(v)} color={k.c(v)}/></div></div>);})}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+<div style={{background:T.bgS,borderRadius:8,padding:8}}>
+<SH>Team Risk Profile</SH>
+{(()=>{const avgRisk=av(tm.reps,"risk");const cats=tm.reps.reduce((o,r)=>{const tj=r.risk>=50?"At-Risk":r.fh>=70&&r.nf>=80?"Accelerating":r.fh<50?"Declining":"Stable";o[tj]=(o[tj]||0)+1;return o;},{});return(<div>
+<div style={{fontSize:20,fontWeight:300,fontFamily:"Georgia,serif",color:riskC(avgRisk)}}>{avgRisk.toFixed(0)}%</div>
+<div style={{fontSize:9,color:T.ts,marginBottom:6}}>Avg Team Risk</div>
+{[{l:"At-Risk",c:T.co},{l:"Accelerating",c:T.tl},{l:"Declining",c:T.am},{l:"Stable",c:T.ic}].map(x=>(<div key={x.l} style={{display:"flex",justifyContent:"space-between",padding:"2px 0",borderBottom:`1px solid ${T.bd}`,fontSize:9}}><span style={{color:x.c,fontWeight:600}}>{x.l}</span><span style={{fontFamily:"monospace",color:T.tx}}>{cats[x.l]||0}</span></div>))}
+</div>);})()}</div>
+<div style={{background:T.bgS,borderRadius:8,padding:8}}>
+<SH>Team Forward Projections</SH>
+{(()=>{const a90=av(tm.reps,"nf"),a120=av(tm.reps,"nf120"),a180=av(tm.reps,"nf180"),aDcov=av(tm.reps,"dcov");return(<div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+{[{l:"90D",v:a90},{l:"120D",v:a120},{l:"180D",v:a180}].map(p=>(<div key={p.l} style={{textAlign:"center",padding:3,background:T.bg,borderRadius:6}}><div style={{fontSize:7,color:T.tm,fontWeight:700}}>{p.l}</div><div style={{fontSize:14,fontWeight:300,color:p.v>=100?T.tl:p.v>=50?T.am:T.co,fontFamily:"Georgia,serif"}}>{Math.min(p.v,999).toFixed(0)}%</div></div>))}</div>
+<div style={{fontSize:9,color:T.ts,marginTop:6}}>Avg Coverage: <b style={{color:T.tx}}>{aDcov.toFixed(0)}d</b></div>
+</div>);})()}</div>
+<div style={{background:T.bgS,borderRadius:8,padding:8}}>
+<SH>Team Scorecard</SH>
+{(()=>{const bd=[{name:"Funnel",s:Math.round(av(tm.reps,"fs"))},{name:"180D",s:Math.round(av(tm.reps,"es"))},{name:"L12M",s:Math.round(Math.min(av(tm.reps,"ls"),250))},{name:"Acts",s:Math.round(Math.min(av(tm.reps,"as2"),30))},{name:"TBR",s:Math.round(av(tm.reps,"ts2"))}];return(<div>
+<ResponsiveContainer width="100%" height={100}><BarChart data={bd} layout="vertical" barSize={9}><XAxis type="number" tick={{fill:T.tm,fontSize:8}} axisLine={false}/><YAxis dataKey="name" type="category" tick={{fill:T.ts,fontSize:8}} axisLine={false} width={36}/><Bar dataKey="s" radius={[0,5,5,0]}>{[T.gl,T.ic,T.tl,T.pl,T.am].map((c,i)=><Cell key={i} fill={c}/>)}</Bar><Tooltip contentStyle={tip}/></BarChart></ResponsiveContainer>
+<div style={{fontSize:9,color:T.ts,textAlign:"right",fontFamily:"monospace"}}>Avg Total: <span style={{color:T.gl,fontSize:12,fontFamily:"Georgia,serif"}}>{av(tm.reps,"sc").toFixed(0)}</span></div>
+</div>);})()}</div></div>
+<div style={{marginTop:8}}><SH>Rep Roster</SH>
+<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{[...tm.reps].sort((a,b)=>b.fh-a.fh).map(r=>(<div key={r.n} onClick={e=>{e.stopPropagation();setSel(r);setTab("Rep Detail");}} style={{background:T.bgS,borderRadius:6,padding:"4px 9px",fontSize:10,cursor:"pointer",border:`1px solid ${T.bd}`,display:"flex",alignItems:"center",gap:4}} onMouseOver={e=>e.currentTarget.style.borderColor=T.gl} onMouseOut={e=>e.currentTarget.style.borderColor=T.bd}><span style={{width:6,height:6,borderRadius:"50%",background:hC(r.fh)}}/><span style={{fontWeight:500}}>{r.n.split(" ")[0]} {r.n.split(" ").slice(-1)[0][0]}.</span><span style={{color:T.tm,fontFamily:"monospace"}}>{r.fh.toFixed(0)}%</span></div>))}</div></div>
+</div>)}
+</div>);})}</div>
 </div>)}
 </div>);})}</div>
 </div>))}</div>)}
