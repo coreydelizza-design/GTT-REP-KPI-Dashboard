@@ -77,6 +77,7 @@ const[divF,setDivF]=useState("All");
 const[tmF,setTmF]=useState("All");
 const[sch,setSch]=useState("");
 const[sel,setSel]=useState(null);
+const[selTm,setSelTm]=useState(null);
 const[bS,setBS]=useState({});
 const[pSo,setPSo]=useState("risk");
 const[pFi,setPFi]=useState("All");
@@ -152,11 +153,45 @@ return(<div>
 <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:10,color:T.tm,width:16,textAlign:"right",fontFamily:"monospace"}}>{i+1}</span><span style={{fontSize:11,fontWeight:500}}>{r.n}</span><Pill color={qC(r.qg)} bg="transparent">T{r.qg}</Pill></div>
 <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:11,fontWeight:600,color:hC(r.fh),fontFamily:"monospace"}}>{r.fh.toFixed(0)}%</span><div style={{width:44}}><PB pct={r.fh} color={hC(r.fh)}/></div></div></div>))}
 </div>))}</div></>)}
-{tab==="Teams"&&(<div style={{display:"grid",gap:10}}>{tD.map(t=>(<div key={t.name} style={{background:T.cd,border:`1px solid ${T.bd}`,borderRadius:14,padding:14}}>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-<div><div style={{fontSize:14,fontWeight:400,fontFamily:"Georgia,serif"}}>{t.name}</div><div style={{fontSize:10,color:T.tm}}>{t.ct} reps</div></div>
-<div style={{display:"flex",gap:14}}><Ring value={Number(t.aS)} max={200} color={T.gl} label="Score" size={56}/><Ring value={Number(t.aF)} max={100} color={hC(Number(t.aF))} label="Health" size={56}/><Ring value={Math.min(Number(t.a5),200)} max={200} color={fxC(Number(t.a5))} label="Funnel" size={56}/><Ring value={Math.min(Number(t.aC),100)} max={100} color={crC(Number(t.aC))} label="Close" size={56}/></div></div>
-<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{t.reps.sort((a,b)=>b.fh-a.fh).map(r=>(<div key={r.n} onClick={()=>{setSel(r);setTab("Rep Detail");}} style={{background:T.bgS,borderRadius:6,padding:"4px 9px",fontSize:10,cursor:"pointer",border:`1px solid ${T.bd}`,display:"flex",alignItems:"center",gap:4}} onMouseOver={e=>e.currentTarget.style.borderColor=T.gl} onMouseOut={e=>e.currentTarget.style.borderColor=T.bd}><span style={{width:6,height:6,borderRadius:"50%",background:hC(r.fh)}}/><span style={{fontWeight:500}}>{r.n.split(" ")[0]} {r.n.split(" ").slice(-1)[0][0]}.</span><span style={{color:T.tm,fontFamily:"monospace"}}>{r.fh.toFixed(0)}%</span></div>))}</div></div>))}</div>)}
+{tab==="Teams"&&(<div style={{display:"grid",gap:10}}>{tD.map(t=>{const isOpen=selTm===t.name;const tAvgQs=t.reps.reduce((s,r)=>s+Math.min(r.qs,200),0)/t.reps.length;const tDiv=t.reps[0]?.d||"";return(<div key={t.name} style={{background:T.cd,border:`1px solid ${isOpen?T.gl:T.bd}`,borderRadius:14,padding:14,cursor:"pointer"}} onClick={()=>setSelTm(selTm===t.name?null:t.name)}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+<div><div style={{fontSize:14,fontWeight:isOpen?600:400,fontFamily:"Georgia,serif",color:isOpen?T.gl:T.tx}}>{t.name}</div><div style={{display:"flex",gap:3,marginTop:4}}><Pill>{t.ct} reps</Pill><Pill color={T.ic} bg={T.ic+"18"}>{tDiv}</Pill></div></div>
+<div style={{display:"flex",gap:12}}><Ring value={Number(t.aS)} max={300} color={T.gl} label="Score" size={52}/><Ring value={Number(t.aF)} max={100} color={hC(Number(t.aF))} label="Health" size={52}/><Ring value={Math.min(Number(t.a5),200)} max={200} color={fxC(Number(t.a5))} label="Funnel" size={52}/><Ring value={Math.min(Number(t.aC),100)} max={100} color={crC(Number(t.aC))} label="Close" size={52}/><Ring value={Math.min(tAvgQs,200)} max={200} color={tAvgQs>=100?T.tl:tAvgQs>=60?T.am:T.co} label="Quota" size={52}/></div></div>
+{isOpen&&(<div style={{marginTop:14,borderTop:`1px solid ${T.bd}`,paddingTop:14}} onClick={e=>e.stopPropagation()}>
+<div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginBottom:12}}>
+{[{l:"Avg 5x Funnel Adds",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.fp,999),0)/t.reps.length).toFixed(0)}%`,c:fxC(t.reps.reduce((s,r)=>s+r.fp,0)/t.reps.length),p:Math.min(t.reps.reduce((s,r)=>s+r.fp,0)/t.reps.length,200)/2},
+{l:"Avg 180-Day Coverage",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.ep,999),0)/t.reps.length).toFixed(0)}%`,c:(()=>{const v=t.reps.reduce((s,r)=>s+r.ep,0)/t.reps.length;return v>=300?T.tl:v>=60?T.am:T.co;})(),p:Math.min(t.reps.reduce((s,r)=>s+r.ep,0)/t.reps.length/3,100)},
+{l:"Avg Close Rate",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.cr,999),0)/t.reps.length).toFixed(0)}%`,c:crC(t.reps.reduce((s,r)=>s+r.cr,0)/t.reps.length),p:Math.min(t.reps.reduce((s,r)=>s+r.cr,0)/t.reps.length,100)},
+{l:"Avg Quota L12M",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.qs,999),0)/t.reps.length).toFixed(0)}%`,c:(()=>{const v=t.reps.reduce((s,r)=>s+r.qs,0)/t.reps.length;return v>=100?T.tl:v>=60?T.am:T.co;})(),p:Math.min(t.reps.reduce((s,r)=>s+r.qs,0)/t.reps.length/2,100)},
+{l:"Avg YTD 2026",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.yq,999),0)/t.reps.length).toFixed(0)}%`,c:(()=>{const v=t.reps.reduce((s,r)=>s+r.yq,0)/t.reps.length;return v>=100?T.tl:v>=60?T.am:T.co;})(),p:Math.min(t.reps.reduce((s,r)=>s+r.yq,0)/t.reps.length,100)},
+{l:"Avg TBR Results",v:`${(t.reps.reduce((s,r)=>s+Math.min(r.tp,200),0)/t.reps.length).toFixed(0)}%`,c:(()=>{const v=t.reps.reduce((s,r)=>s+r.tp,0)/t.reps.length;return v>=100?T.tl:v>=80?T.am:T.co;})(),p:Math.min(t.reps.reduce((s,r)=>s+r.tp,0)/t.reps.length,100)}
+].map(k=>(<div key={k.l} style={{background:T.bgS,borderRadius:8,padding:8,position:"relative",overflow:"hidden"}}><div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${k.c}66,transparent)`}}/><div style={{fontSize:8,color:T.tm,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:4,fontFamily:"monospace"}}>{k.l}</div><div style={{fontSize:18,fontWeight:300,color:k.c,fontFamily:"Georgia,serif"}}>{k.v}</div><div style={{marginTop:4}}><PB pct={k.p} color={k.c}/></div></div>))}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+<div style={{background:T.bgS,borderRadius:10,padding:10}}>
+<SH>Team Risk Profile</SH>
+{(()=>{const avgRisk=t.reps.reduce((s,r)=>s+r.risk,0)/t.reps.length;const atRisk=t.reps.filter(r=>r.risk>=50).length;const cats=t.reps.reduce((o,r)=>{const tj=r.risk>=50?"At-Risk":r.fh>=70&&r.nf>=80?"Accelerating":r.fh<50?"Declining":"Stable";o[tj]=(o[tj]||0)+1;return o;},{});return(<div>
+<div style={{fontSize:24,fontWeight:300,fontFamily:"Georgia,serif",color:riskC(avgRisk)}}>{avgRisk.toFixed(0)}%</div>
+<div style={{fontSize:10,color:T.ts,marginBottom:8}}>Avg Team Risk</div>
+<div style={{fontSize:10,color:T.co,marginBottom:8}}>{atRisk} At-Risk rep{atRisk!==1?"s":""}</div>
+{[{l:"At-Risk",c:T.co},{l:"Accelerating",c:T.tl},{l:"Declining",c:T.am},{l:"Stable",c:T.ic}].map(x=>(<div key={x.l} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",borderBottom:`1px solid ${T.bd}`,fontSize:10}}><span style={{color:x.c,fontWeight:600}}>{x.l}</span><span style={{fontFamily:"monospace",color:T.tx}}>{cats[x.l]||0}</span></div>))}
+</div>);})()}</div>
+<div style={{background:T.bgS,borderRadius:10,padding:10}}>
+<SH>Team Forward Projections</SH>
+{(()=>{const a90=t.reps.reduce((s,r)=>s+r.nf,0)/t.reps.length;const a120=t.reps.reduce((s,r)=>s+r.nf120,0)/t.reps.length;const a180=t.reps.reduce((s,r)=>s+r.nf180,0)/t.reps.length;const aDcov=t.reps.reduce((s,r)=>s+r.dcov,0)/t.reps.length;return(<div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+{[{l:"90D",v:a90},{l:"120D",v:a120},{l:"180D",v:a180}].map(p=>(<div key={p.l} style={{textAlign:"center",padding:4,background:T.bg,borderRadius:6}}><div style={{fontSize:8,color:T.tm,fontWeight:700}}>{p.l}</div><div style={{fontSize:16,fontWeight:300,color:p.v>=100?T.tl:p.v>=50?T.am:T.co,fontFamily:"Georgia,serif"}}>{Math.min(p.v,999).toFixed(0)}%</div></div>))}</div>
+<div style={{fontSize:10,color:T.ts,marginTop:8}}>Avg Pipeline Coverage: <b style={{color:T.tx}}>{aDcov.toFixed(0)}d</b></div>
+</div>);})()}</div>
+<div style={{background:T.bgS,borderRadius:10,padding:10}}>
+<SH>Team Scorecard Breakdown</SH>
+{(()=>{const aFs=t.reps.reduce((s,r)=>s+r.fs,0)/t.reps.length;const aEs=t.reps.reduce((s,r)=>s+r.es,0)/t.reps.length;const aLs=t.reps.reduce((s,r)=>s+r.ls,0)/t.reps.length;const aAs=t.reps.reduce((s,r)=>s+r.as2,0)/t.reps.length;const aTs=t.reps.reduce((s,r)=>s+r.ts2,0)/t.reps.length;const avgSc=t.reps.reduce((s,r)=>s+r.sc,0)/t.reps.length;return(<div>
+<ResponsiveContainer width="100%" height={120}><BarChart data={[{name:"Funnel",s:Math.round(aFs)},{name:"180D",s:Math.round(aEs)},{name:"L12M",s:Math.round(Math.min(aLs,250))},{name:"Acts",s:Math.round(Math.min(aAs,30))},{name:"TBR",s:Math.round(aTs)}]} layout="vertical" barSize={11}><XAxis type="number" tick={{fill:T.tm,fontSize:9}} axisLine={false}/><YAxis dataKey="name" type="category" tick={{fill:T.ts,fontSize:9}} axisLine={false} width={40}/><Bar dataKey="s" radius={[0,5,5,0]}>{[T.gl,T.ic,T.tl,T.pl,T.am].map((c,i)=><Cell key={i} fill={c}/>)}</Bar><Tooltip contentStyle={tip}/></BarChart></ResponsiveContainer>
+<div style={{fontSize:10,color:T.ts,textAlign:"right",fontFamily:"monospace"}}>Avg Total: <span style={{color:T.gl,fontSize:14,fontFamily:"Georgia,serif"}}>{avgSc.toFixed(0)}</span></div>
+</div>);})()}</div></div>
+<div style={{marginTop:10}}><SH>Rep Roster</SH>
+<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{t.reps.sort((a,b)=>b.fh-a.fh).map(r=>(<div key={r.n} onClick={e=>{e.stopPropagation();setSel(r);setTab("Rep Detail");}} style={{background:T.bgS,borderRadius:6,padding:"4px 9px",fontSize:10,cursor:"pointer",border:`1px solid ${T.bd}`,display:"flex",alignItems:"center",gap:4}} onMouseOver={e=>e.currentTarget.style.borderColor=T.gl} onMouseOut={e=>e.currentTarget.style.borderColor=T.bd}><span style={{width:6,height:6,borderRadius:"50%",background:hC(r.fh)}}/><span style={{fontWeight:500}}>{r.n.split(" ")[0]} {r.n.split(" ").slice(-1)[0][0]}.</span><span style={{color:T.tm,fontFamily:"monospace"}}>{r.fh.toFixed(0)}%</span></div>))}</div></div>
+</div>)}
+</div>);})}</div>)}
 {tab==="Rep Detail"&&(<div style={{display:"grid",gap:10}}>
 {[...data].sort((a,b)=>b.sc-a.sc).map(r=>{const isOpen=sel&&sel.n===r.n;return(<div key={r.n} style={{background:T.cd,border:`1px solid ${isOpen?T.gl:T.bd}`,borderRadius:14,padding:14,cursor:"pointer"}} onClick={()=>setSel(isOpen?null:r)}>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
