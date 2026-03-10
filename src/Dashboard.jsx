@@ -116,7 +116,7 @@ return(
 <div style={{padding:"18px 24px",maxWidth:1400,margin:"0 auto"}}>
 {tab==="Overview"&&(<>
 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:18}}>
-<Stat icon="\u25C8" label="Avg Score" value={aS} sub="Composite" color={Number(aS)>100?T.tl:T.am}/>
+<Stat icon="" label="Avg Score" value={aS} sub="Composite" color={Number(aS)>100?T.tl:T.am}/>
 <Stat icon="\u25C9" label="Funnel Health" value={`${aFH}%`} sub="Composite index" color={hC(Number(aFH))}/>
 <Stat icon="\u25CA" label="Funnel Adds" value={`${aFp}%`} sub="vs 5x quota" color={fxC(Number(aFp))}/>
 <Stat icon="\u25CB" label="Close Rate" value={`${aCr}%`} sub="Derived" color={crC(Number(aCr))}/>
@@ -231,7 +231,7 @@ const fd=pFi==="All"?pd:pd.filter(r=>r.tj===pFi);
 const so=[...fd].sort((a,b)=>pSo==="risk"?b.risk-a.risk:pSo==="nf"?b.nf-a.nf:pSo==="fh"?b.fh-a.fh:b.sc-a.sc);
 return(<>
 <div style={{background:T.cd,border:`1px solid ${T.bd}`,borderRadius:14,padding:16,marginBottom:14}}>
-<div style={{fontSize:15,fontWeight:300,fontFamily:"Georgia,serif",color:T.gl,marginBottom:3}}>\u25C8 Predictive Close & Funnel Analytics</div>
+<div style={{fontSize:15,fontWeight:300,fontFamily:"Georgia,serif",color:T.gl,marginBottom:3}}>Predictive Close & Funnel Analytics</div>
 <div style={{fontSize:10,color:T.ts,marginBottom:14}}>Forward projections from pipeline and close rate data. {pd.length} active reps.</div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10}}>
 {[{l:"90-Day Org",v:aN("nf")},{l:"120-Day Org",v:aN("nf120")},{l:"180-Day Org",v:aN("nf180")}].map(h=><Stat key={h.l} icon="\u25CB" label={h.l} value={`${h.v}%`} color={Number(h.v)>=100?T.tl:Number(h.v)>=50?T.am:T.co} sub="Avg forecast"/>)}
@@ -263,7 +263,7 @@ return(<>
 </div></>);})()}
 {tab==="Methodology"&&(<>
 <div style={{background:T.cd,border:`1px solid ${T.bd}`,borderRadius:14,padding:16,marginBottom:12}}>
-<div style={{fontSize:15,fontWeight:300,fontFamily:"Georgia,serif",color:T.gl,marginBottom:2}}>\u25C8 Scoring Methodology Reference</div>
+<div style={{fontSize:15,fontWeight:300,fontFamily:"Georgia,serif",color:T.gl,marginBottom:2}}>Scoring Methodology Reference</div>
 <div style={{fontSize:10,color:T.ts}}>Complete metric definitions, formulas, thresholds, and classification rules. Data as of 03/05/2026.</div></div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
 <div style={{background:T.cd,border:`1px solid ${T.bd}`,borderRadius:14,padding:14}}>
